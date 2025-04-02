@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "pdtd_torch",
+	"version": "${version}",
+	"name": "Put down the damn torch!",
+	"description": "Automatically puts the torch on if the light level is low",
+	"authors": [
+		"Samiker"
+	],
+	"contact": {
+		"homepage": "https://samiker.xyz"
+	},
+	"license": "MIT",
+	"icon": "assets/pdtd_torch/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"xyz.samiker.pdtd_torch.PutDownTheDamnTorchClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": ">=1.20.1",
+		"java": ">=17",
+		"fabric-api": "*",
+		"cloth-config": ">=11.1.136"
+	}
+}
