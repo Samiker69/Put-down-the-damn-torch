@@ -1,5 +1,15 @@
 {
   "key.pdtd_torch.toggle": "Включить/выключить мод",
   "key.pdtd_torch.mode": "Сменить режим работы мода",
-  "category.pdtd_torch": "Put Down The Damn Torch"
+  "category.pdtd_torch": "Put Down The Damn Torch",
+  "text.autoconfig.PutDownTheDamnTorch.option.hud": "Настройки HUD",
+  "text.autoconfig.PutDownTheDamnTorch.option.hud.hudX": "Положение X",
+  "text.autoconfig.PutDownTheDamnTorch.option.hud.hudY": "Положение Y",
+  "text.autoconfig.PutDownTheDamnTorch.option.modes": "Необходимый уровень света для установки факела",
+  "text.autoconfig.PutDownTheDamnTorch.option.modes.alwaysLightThreshold": "Всегда",
+  "text.autoconfig.PutDownTheDamnTorch.option.modes.nightLightThreshold": "Ночной режим (дополнительно: работает только ночью)",
+  "text.autoconfig.PutDownTheDamnTorch.option.modes.caveLightThreshold": "Пещеры",
+  "text.autoconfig.PutDownTheDamnTorch.option.enableHotbarSwitch": "Выбирать ли слот с факелом, когда он не в руке?",
+  "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Задержка с которой будут устанавливаться факела",
+  "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Ставить ли факела в воде?"
 }
