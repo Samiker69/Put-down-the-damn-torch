@@ -11,5 +11,6 @@
   "text.autoconfig.PutDownTheDamnTorch.option.modes.caveLightThreshold": "Cave",
   "text.autoconfig.PutDownTheDamnTorch.option.enableHotbarSwitch": "Enable automatically switching to a torch in the hotbar if not in hand?",
   "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Cooldown between automatic torch placements (in ticks)",
-  "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Allow placing torches while the player is touching water"
+  "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Allow placing torches while the player is touching water",
+  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch"
 }

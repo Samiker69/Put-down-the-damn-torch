@@ -10,6 +10,7 @@
   "text.autoconfig.PutDownTheDamnTorch.option.modes.nightLightThreshold": "Ночной режим (дополнительно: работает только ночью)",
   "text.autoconfig.PutDownTheDamnTorch.option.modes.caveLightThreshold": "Пещеры",
   "text.autoconfig.PutDownTheDamnTorch.option.enableHotbarSwitch": "Выбирать ли слот с факелом, когда он не в руке?",
-  "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Задержка с которой будут устанавливаться факела",
-  "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Ставить ли факела в воде?"
+  "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Задержка с которой будут устанавливаться факела(в тиках)",
+  "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Ставить ли факела в воде?",
+  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch"
 }
