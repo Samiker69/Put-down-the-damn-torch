@@ -16,6 +16,9 @@
 	"entrypoints": {
 		"client": [
 			"xyz.samiker.pdtd_torch.PutDownTheDamnTorchClient"
+		],
+		"modmenu": [
+			"xyz.samiker.pdtd_torch.config.ModMenuIntegration"
 		]
 	},
 	"depends": {

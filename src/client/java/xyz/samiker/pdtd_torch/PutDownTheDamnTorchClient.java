@@ -20,7 +20,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import xyz.samiker.pdtd_torch.config.PdtdConfig;
+import xyz.samiker.pdtd_torch.config.ModConfig;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import org.lwjgl.glfw.GLFW;
@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PutDownTheDamnTorchClient implements ClientModInitializer {
-    private static PdtdConfig CONFIG;
+    private static ModConfig CONFIG;
 
 	private static KeyBinding toggleKey;
 	private static boolean enabled = false;
@@ -70,8 +70,8 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		LOGGER.info("it's work :3");
 
-        AutoConfig.register(PdtdConfig.class, GsonConfigSerializer::new);
-        CONFIG = AutoConfig.getConfigHolder(PdtdConfig.class).getConfig();
+        AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
+        CONFIG = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
 
 		toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
 				"key.pdtd_torch.toggle",
@@ -156,6 +156,7 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
 		if (client.interactionManager == null || client.world == null || client.player == null) {
 			return;
 		}
+		if (client.player.isTouchingWater() && !CONFIG.worksInWater) return;
 
 		BlockState torchState = Blocks.TORCH.getDefaultState();
 		if (!torchState.canPlaceAt(client.world, pos)) {
@@ -200,7 +201,7 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
 	}
 
     // hm, idk :3
-    public static PdtdConfig getConfig() {
+    public static ModConfig getConfig() {
         return CONFIG;
     }
 }
