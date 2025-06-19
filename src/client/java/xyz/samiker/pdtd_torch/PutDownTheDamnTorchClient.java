@@ -5,16 +5,20 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.Block;
+import net.minecraft.block.TorchBlock;
+import net.minecraft.block.WallTorchBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.BlockItem;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -22,6 +26,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,81 +37,125 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
     private static ModConfig CONFIG;
     private static KeyBinding toggleKey;
     private static boolean enabled = false;
-    private static Mode currentMode = Mode.ALWAYS;
+    private static Mode currentMode = Mode.CAVE;
     private static long lastPlacementTick = 0;
 
-    private static boolean shouldPlaceTorch(int lightLevel, long timeOfDay, Mode mode) {
+	private record FoundItemInfo(Item item, Hand hand, int hotbarSlot, boolean needsSwitch) {
+    }
+
+	private static FoundItemInfo findHighestPriorityLightSource(PlayerEntity player) {
+		// 1. Итерация по списку из конфига
+		for (String itemIdStr : CONFIG.prioritizedLightSources) {
+			Identifier itemId = Identifier.tryParse(itemIdStr);
+			if (itemId == null) {
+				LOGGER.warn("Invalid item ID in config: {}", itemIdStr);
+				continue;
+			}
+
+			Item item = Registries.ITEM.getOrEmpty(itemId).orElse(null);
+			 if (item == null) {
+                 LOGGER.debug("Item not found in registry: {}", itemIdStr);
+				 continue;
+			 }
+
+			if (player.getOffHandStack().getItem() == item) {
+				return new FoundItemInfo(item, Hand.OFF_HAND, -1, false);
+			}
+
+			if (player.getMainHandStack().getItem() == item) {
+				return new FoundItemInfo(item, Hand.MAIN_HAND, player.getInventory().selectedSlot, false);
+			}
+
+			if (CONFIG.enableHotbarSwitch) {
+				for (int i = 0; i < 9; i++) {
+					if (i == player.getInventory().selectedSlot) continue;
+
+					if (player.getInventory().getStack(i).getItem() == item) {
+						return new FoundItemInfo(item, Hand.MAIN_HAND, i, true); // Нашли в хотбаре, нужно переключить
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+    private static boolean shouldPlaceLightSource(int lightLevel, long timeOfDay, Mode mode) {
         boolean isNight = timeOfDay >= 13000 && timeOfDay <= 23000;
         boolean isDarkEnough = lightLevel <= mode.getConfigLightThreshold();
 
         return switch (mode) {
-            case ALWAYS -> isDarkEnough;
+            case ALWAYS -> true;
             case NIGHT -> isNight && isDarkEnough;
             case CAVE -> isDarkEnough;
         };
     }
 
-    private static boolean hasTorch(PlayerEntity player) {
-        if (player.getOffHandStack().getItem() == Items.TORCH) {
-            return true;
-        }
-        for (ItemStack stack : player.getInventory().main) {
-            if (stack.getItem() == Items.TORCH) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void placeTorch(MinecraftClient client, BlockPos pos) {
+    private static void placeLightSource(MinecraftClient client, BlockPos pos, FoundItemInfo itemInfo) {
         if (client.interactionManager == null || client.world == null || client.player == null) {
             return;
         }
         if (client.player.isTouchingWater() && !CONFIG.worksInWater) return;
 
-        BlockState torchState = Blocks.TORCH.getDefaultState();
-        if (!torchState.canPlaceAt(client.world, pos)) {
-            // LOGGER.debug("Cannot place torch at {}", pos); // для отладки
+        Item itemToPlace = itemInfo.item();
+        if (!(itemToPlace instanceof BlockItem blockItem)) {
+            LOGGER.warn("Item {} is not a BlockItem, cannot place automatically.", Registries.ITEM.getId(itemToPlace));
+            return; // Не можем разместить предмет, который не является блоком
+        }
+
+        Block blockToPlace = blockItem.getBlock();
+        BlockState stateToPlace = blockToPlace.getDefaultState();
+        boolean isTorchLike = blockToPlace instanceof TorchBlock || blockToPlace instanceof WallTorchBlock;
+
+        // --- Логика проверки места установки ---
+        boolean canPlace = false;
+        if (isTorchLike) {
+            canPlace = stateToPlace.canPlaceAt(client.world, pos);
+        }
+
+        if (!canPlace) {
+            // LOGGER.debug("Cannot place {} at {}", Registries.BLOCK.getId(blockToPlace), pos); // для отладки
             return;
         }
-        Hand handToUse = null;
+
+        // --- Логика переключения хотбара и взаимодействия ---
+        Hand handToUse = itemInfo.hand();
         int originalSlot = client.player.getInventory().selectedSlot;
-        boolean switchedSlot = false;
+        boolean switchedSlot = itemInfo.needsSwitch();
 
-        if (client.player.getOffHandStack().getItem() == Items.TORCH) {
-            handToUse = Hand.OFF_HAND;
-        } else if (client.player.getMainHandStack().getItem() == Items.TORCH) {
-            handToUse = Hand.MAIN_HAND;
-        } else if (CONFIG.enableHotbarSwitch) {
-            for (int i = 0; i < 9; i++) {
-                if (client.player.getInventory().getStack(i).getItem() == Items.TORCH) {
-                    client.player.getInventory().selectedSlot = i;
-                    handToUse = Hand.MAIN_HAND;
-                    switchedSlot = true;
-                    break;
-                }
+        if (switchedSlot) {
+            if (itemInfo.hotbarSlot() < 0 || itemInfo.hotbarSlot() >= 9) {
+                 LOGGER.error("Invalid hotbar slot index {} for item {}", itemInfo.hotbarSlot(), Registries.ITEM.getId(itemToPlace));
+                 return; // Ошибка в логике поиска
             }
+            client.player.getInventory().selectedSlot = itemInfo.hotbarSlot();
+            // Важно: рука будет MAIN_HAND, т.к. мы переключили слот хотбара
+            handToUse = Hand.MAIN_HAND;
         }
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3d.ofCenter(pos.down()).add(0, 0.5, 0), // Центр верхней грани блока под нами
+                Direction.UP, // Направление взгляда вверх (относительно блока под нами)
+                pos.down(), // Блок, по которому кликаем
+                false // Не внутри блока
+        );
 
-        // Если не нашли факел ни в руках, ни в хотбаре - выходим
-        if (handToUse == null) return;
-
-        BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false);
         ActionResult result = client.interactionManager.interactBlock(client.player, handToUse, hitResult);
 
         if (result.isAccepted()) {
             client.player.swingHand(handToUse);
             lastPlacementTick = client.world.getTime();
+            // LOGGER.debug("Placed {} at {}", Registries.BLOCK.getId(blockToPlace), pos);
         } else {
-            LOGGER.warn("Failed to place torch at {} using hand {}. Result: {}", pos, handToUse, result);
+            // LOGGER.warn("Failed to place {} at {} using hand {}. Result: {}", Registries.BLOCK.getId(blockToPlace), pos, handToUse, result);
+            // Возможно, стоит попробовать кликнуть по другой грани или использовать другую логику hitResult для некоторых блоков?
         }
 
+        // Возвращаем оригинальный слот хотбара, если переключали
         if (switchedSlot) {
             client.player.getInventory().selectedSlot = originalSlot;
         }
     }
 
-    // hm, idk :3
+    // idk. why not :3
     public static ModConfig getConfig() {
         return CONFIG;
     }
@@ -122,6 +171,18 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
 
         KeyBinding modeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.pdtd_torch.mode", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "category.pdtd_torch"));
 
+        ClientPlayConnectionEvents.JOIN.register((handler, client, sender) -> {
+            lastPlacementTick = 0;
+            if (CONFIG.forgetSettingsWhenLeavingWorld) {
+                enabled = false;
+                currentMode = Mode.CAVE;
+            }
+        });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            lastPlacementTick = 0;
+        });
+
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleKey.wasPressed()) {
                 enabled = !enabled;
@@ -135,6 +196,28 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
                     client.player.sendMessage(Text.of("Torch Mode: §a" + currentMode.getDisplayName()), true);
                 }
             }
+
+            if (enabled && client.player != null && client.world != null) {
+
+                long currentTime = client.world.getTime();
+                if (currentTime < lastPlacementTick + CONFIG.placementCooldownTicks) {
+                    return; // Кулдаун
+                }
+
+                BlockPos playerPos = client.player.getBlockPos(); // Позиция ног игрока
+                int lightLevel = client.world.getLightLevel(playerPos);
+                long timeOfDay = client.world.getTimeOfDay() % 24000;
+
+                // Проверяем, нужно ли ставить свет по условиям режима
+                if (shouldPlaceLightSource(lightLevel, timeOfDay, currentMode)) {
+                    // Ищем подходящий предмет в инвентаре по приоритету
+                    FoundItemInfo itemInfo = findHighestPriorityLightSource(client.player);
+                    if (itemInfo != null) {
+                        // Если нашли предмет, пытаемся его разместить в позиции ног игрока
+                        placeLightSource(client, playerPos, itemInfo);
+                    }
+                }
+            }
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
@@ -142,24 +225,6 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
                 TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
                 drawContext.drawText(textRenderer, "Auto Torch: §aEnabled", CONFIG.hud.hudX, CONFIG.hud.hudY, 0xFFFFFF, true);
                 drawContext.drawText(textRenderer, "Mode: §a" + currentMode.getDisplayName(), CONFIG.hud.hudX, CONFIG.hud.hudY + 10, 0xFFFFFF, true);
-            }
-        });
-
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (enabled && client.player != null && client.world != null) {
-
-                long currentTime = client.world.getTime();
-                if (currentTime < lastPlacementTick + CONFIG.placementCooldownTicks) {
-                    return; // Еще не прошло достаточно времени с последней установки
-                }
-
-                BlockPos playerPos = client.player.getBlockPos(); // Позиция ног игрока
-                int lightLevel = client.world.getLightLevel(playerPos);
-                long timeOfDay = client.world.getTimeOfDay() % 24000;
-
-                if (shouldPlaceTorch(lightLevel, timeOfDay, currentMode) && hasTorch(client.player)) {
-                    placeTorch(client, playerPos);
-                }
             }
         });
     }
@@ -177,10 +242,9 @@ public class PutDownTheDamnTorchClient implements ClientModInitializer {
             return displayName;
         }
 
-        // Метод для получения следующего режима по кругу
         public Mode next() {
-            Mode[] modes = values(); // Массив всех значений enum [ALWAYS, NIGHT, CAVE]
-            int nextOrdinal = (this.ordinal() + 1) % modes.length; // Индекс следующего + зацикливание
+            Mode[] modes = values();
+            int nextOrdinal = (this.ordinal() + 1) % modes.length; 
             return modes[nextOrdinal];
         }
 

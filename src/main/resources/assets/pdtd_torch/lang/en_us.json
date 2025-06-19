@@ -2,6 +2,7 @@
   "key.pdtd_torch.toggle": "Enable/Disable the mod",
   "key.pdtd_torch.mode": "Change mode",
   "category.pdtd_torch": "Put Down The Damn Torch",
+  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch",
   "text.autoconfig.PutDownTheDamnTorch.option.hud": "HUD Settings",
   "text.autoconfig.PutDownTheDamnTorch.option.hud.hudX": "X position of the text",
   "text.autoconfig.PutDownTheDamnTorch.option.hud.hudY": "Y position of the text",
@@ -12,5 +13,6 @@
   "text.autoconfig.PutDownTheDamnTorch.option.enableHotbarSwitch": "Enable automatically switching to a torch in the hotbar if not in hand?",
   "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Cooldown between automatic torch placements (in ticks)",
   "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Allow placing torches while the player is touching water",
-  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch"
+  "text.autoconfig.PutDownTheDamnTorch.option.prioritizedLightSources": "Block placement priority (higher = higher priority)",
+  "text.autoconfig.PutDownTheDamnTorch.option.forgetSettingsWhenLeavingWorld": "Should the state and mode be reset when exiting the world?"
 }

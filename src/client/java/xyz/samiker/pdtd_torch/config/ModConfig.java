@@ -1,5 +1,7 @@
 package xyz.samiker.pdtd_torch.config;
 
+import java.util.List;
+import java.util.Arrays;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
@@ -16,15 +18,24 @@ public class ModConfig implements ConfigData {
     @Comment("Mode Settings")
     public ModeSettings modes = new ModeSettings();
 
-    @Comment("Enable automatically switching to a torch in the hotbar if not in hand?")
-    public boolean enableHotbarSwitch = true;
+    @Comment("Should the mode and 'enable' be reset when exiting the world?")
+    public boolean forgetSettingsWhenLeavingWorld = false;
+
+    @Comment("Enable automatically switching to a light source in the hotbar if not in hand?")
+    public boolean enableHotbarSwitch = false;
 
     @Comment("Cooldown between automatic torch placements (in ticks, 20 ticks = 1 second)")
-    @ConfigEntry.BoundedDiscrete(min = 0, max = 100) // Ограничение значения в GUI
+    @ConfigEntry.BoundedDiscrete(min = 0, max = 200)
     public int placementCooldownTicks = 10;
 
     @Comment("Allow placing torches while the player is touching water?")
     public boolean worksInWater = false;
+	
+	@Comment("List of item IDs (e.g., 'minecraft:torch') to use for auto-placement, in order of priority (highest first).")
+    public List<String> prioritizedLightSources = Arrays.asList(
+            "minecraft:torch",
+            "minecraft:soul_torch"
+    );
 
     public static class HudSettings {
         @Comment("X position of the HUD text")

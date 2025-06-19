@@ -2,6 +2,7 @@
   "key.pdtd_torch.toggle": "Включить/выключить мод",
   "key.pdtd_torch.mode": "Сменить режим работы мода",
   "category.pdtd_torch": "Put Down The Damn Torch",
+  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch",
   "text.autoconfig.PutDownTheDamnTorch.option.hud": "Настройки HUD",
   "text.autoconfig.PutDownTheDamnTorch.option.hud.hudX": "Положение X",
   "text.autoconfig.PutDownTheDamnTorch.option.hud.hudY": "Положение Y",
@@ -12,5 +13,6 @@
   "text.autoconfig.PutDownTheDamnTorch.option.enableHotbarSwitch": "Выбирать ли слот с факелом, когда он не в руке?",
   "text.autoconfig.PutDownTheDamnTorch.option.placementCooldownTicks": "Задержка с которой будут устанавливаться факела(в тиках)",
   "text.autoconfig.PutDownTheDamnTorch.option.worksInWater": "Ставить ли факела в воде?",
-  "text.autoconfig.PutDownTheDamnTorch.title": "Put Down TheDamn Torch"
+  "text.autoconfig.PutDownTheDamnTorch.option.prioritizedLightSources": "Приоритет установки блоков (выше - приоритетнее)",
+  "text.autoconfig.PutDownTheDamnTorch.option.forgetSettingsWhenLeavingWorld": "Сбрасывать ли состояние и режим при выходе из мира?"
 }
