@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "putdownthisdamntorch",
+  "version": "${version}",
+  "name": "Put Down This Damn Torch!",
+  "description": "",
+  "authors": [
+    "Samiker"
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "MIT",
+  "icon": "assets/putdownthisdamntorch/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "xyz.samiker.putdownthisdamntorch.fabric.PutdownthisdamntorchFabric"
+    ],
+    "client": [
+      "xyz.samiker.putdownthisdamntorch.fabric.client.PutdownthisdamntorchFabricClient"
+    ],
+    "modmenu": [
+      "xyz.samiker.putdownthisdamntorch.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "putdownthisdamntorch.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.10",
+    "java": ">=21",
+    "architectury": ">=18.0.8",
+    "fabric-api": "*"
+  }
+}

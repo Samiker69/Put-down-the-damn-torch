@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "putdownthisdamntorch"
+version = "${version}"
+displayName = "Put Down This Damn Torch!"
+authors = "Samiker"
+description = '''
+
+'''
+#logoFile = ""
+
+[[dependencies.putdownthisdamntorch]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.putdownthisdamntorch]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.10,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.putdownthisdamntorch]]
+modId = "architectury"
+type = "required"
+versionRange = "[18.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "putdownthisdamntorch.mixins.json"
