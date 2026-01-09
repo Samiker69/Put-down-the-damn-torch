@@ -48,7 +48,6 @@ public class AutoTorchLogic {
             var itemInfo = InventoryHandler.findLightSource(client.player);
 
             if (itemInfo != null) {
-                // Делегируем установку
                 boolean success = PlacementHandler.tryPlaceLight(client, pos, itemInfo);
                 if (success) {
                     lastPlacementTick = currentTime;
@@ -60,6 +59,4 @@ public class AutoTorchLogic {
     private static boolean shouldPlace(int light, long time) {
         return currentMode.check(light, time);
     }
-
-    // Enum Mode можно перенести внутрь или в отдельный файл
 }

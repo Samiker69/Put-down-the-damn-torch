@@ -28,6 +28,12 @@ public final class PutDownThisDamnTorch {
             CATEGORY
     );
 
+    public static final KeyMapping CONFIG_KEY = new KeyMapping(
+            "key.putdownthisdamntorch.config",
+            GLFW.GLFW_KEY_B,
+            CATEGORY
+    );
+
     public static void init() {
         AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
         KeyMappingRegistry.register(TOGGLE_KEY);
@@ -36,10 +42,6 @@ public final class PutDownThisDamnTorch {
         ClientTickEvent.CLIENT_POST.register(PutDownThisDamnTorch::onTick);
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> AutoTorchLogic.reset());
         ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> AutoTorchLogic.onJoin());
-
-        ClientGuiEvent.RENDER_HUD.register((graphics, dt) -> {
-            //AutoTorchHud.render(graphics);
-        });
     }
 
     private static void onTick(Minecraft client) {
@@ -49,6 +51,10 @@ public final class PutDownThisDamnTorch {
         }
         while (MODE_KEY.consumeClick()) {
             AutoTorchLogic.cycleMode(client.player);
+        }
+        while (CONFIG_KEY.consumeClick()) {
+            ModConfig config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+            client.setScreen(new ModConfigScreen(client.screen, config));
         }
         AutoTorchLogic.tick(client);
     }
